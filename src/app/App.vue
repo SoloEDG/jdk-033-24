@@ -5,11 +5,13 @@ import { WindPanel } from '../features/wind'
 import { SailPanel } from '../features/sail'
 import { MarksPanel } from '../features/jury'
 import { LogbookPanel } from '../features/logbook'
+import { ReviewLayer, ReviewPanel } from '../features/review'
 import { clock } from '../shared/format'
 import { useRace } from './useRace'
 
-const { course, wind, sail, jury, logbook, status, focus, frame, trail, active, start, togglePause, end, locate } = useRace()
+const { course, wind, sail, jury, logbook, review, status, focus, frame, trail, active, start, togglePause, end, locate } = useRace()
 const { voyages, selected, cursor, notice, seek, open } = logbook
+const { overlay, verdicts, gaps: evidenceGaps } = review
 const { mode } = wind
 const { events } = jury
 const labels = { ready: '待出发', running: '竞速中', paused: '已暂停', finished: '已完赛', abandoned: '未完赛' }
@@ -34,14 +36,17 @@ const labels = { ready: '待出发', running: '竞速中', paused: '已暂停', 
             </template>
           </div>
         </div>
-        <CourseChart :course="course" :frame="frame" :trail="trail" :replay="Boolean(selected)" :focus="focus"/>
-        <LogbookPanel :voyages="voyages" :selected="selected" :events="selected?.events ?? events" :cursor="cursor" :notice="notice" :locked="active"
+        <CourseChart :course="course" :frame="frame" :trail="trail" :replay="Boolean(selected)" :focus="focus">
+          <template #overlay><ReviewLayer v-if="selected" :overlays="overlay"/></template>
+        </CourseChart>
+        <LogbookPanel :voyages="voyages" :selected="selected" :events="selected?.events ?? events" :cursor="cursor" :notice="notice" :locked="active" :gaps="evidenceGaps"
           @open="id => { focus = null; open(id) }" @close="selected = null; focus = null" @seek="time => { focus = null; seek(time) }" @focus="locate"/>
+        <ReviewPanel v-if="selected" :review="review" :voyage="selected" :course="course" :cursor="cursor" :heading="frame.boat.heading"/>
       </div>
       <aside class="instruments" aria-label="比赛仪表">
         <WindPanel :wind="frame.wind" :mode="selected?.windMode ?? mode" :locked="active || Boolean(selected)" @mode="wind.set"/>
         <SailPanel :boat="frame.boat" :disabled="status !== 'running' || Boolean(selected)" @steer="sail.steer" @sheet="sail.sheet"/>
-        <MarksPanel :gates="course.gates" :next-gate="frame.nextGate" :penalty="frame.penalty"/>
+        <MarksPanel :gates="course.gates" :next-gate="frame.nextGate" :penalty="frame.penalty" :verdicts="selected ? verdicts : null"/>
       </aside>
     </div>
   </main>

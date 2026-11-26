@@ -4,6 +4,7 @@ import { useWind } from '../features/wind'
 import { useSail } from '../features/sail'
 import { useJury } from '../features/jury'
 import { useLogbook } from '../features/logbook'
+import { useReview } from '../features/review'
 import type { Point, RaceEvent, RaceStatus, Sample } from '../shared/race'
 
 const stepSize = .025
@@ -14,6 +15,7 @@ export function useRace() {
   const sail = useSail(course)
   const jury = useJury(course)
   const logbook = useLogbook()
+  const review = useReview(logbook.selected, logbook.cursor, course)
   const status = ref<RaceStatus>('ready')
   const elapsed = ref(0)
   const focus = ref<Point | null>(null)
@@ -118,5 +120,5 @@ export function useRace() {
     window.removeEventListener('keyup', keyup)
     window.removeEventListener('blur', suspend)
   })
-  return { course, wind, sail, jury, logbook, status, focus, frame, trail, active, start, togglePause, end, locate }
+  return { course, wind, sail, jury, logbook, review, status, focus, frame, trail, active, start, togglePause, end, locate }
 }

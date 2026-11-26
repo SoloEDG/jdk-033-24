@@ -2,7 +2,7 @@
 import { BookOpen, Crosshair, X } from 'lucide-vue-next'
 import { clock } from '../../../shared/format'
 import type { RaceEvent, Voyage } from '../../../shared/race'
-defineProps<{ voyages: Voyage[]; selected: Voyage | null; events: RaceEvent[]; cursor: number; notice: string; locked: boolean }>()
+defineProps<{ voyages: Voyage[]; selected: Voyage | null; events: RaceEvent[]; cursor: number; notice: string; locked: boolean; gaps?: { start: number; end: number }[] }>()
 defineEmits<{ open: [id: string]; close: []; seek: [time: number]; focus: [event: RaceEvent] }>()
 </script>
 
@@ -21,6 +21,9 @@ defineEmits<{ open: [id: string]; close: []; seek: [time: number]; focus: [event
     <div v-if="selected" class="replay-controls">
       <label for="playhead">{{ clock(cursor) }} / {{ clock(selected.duration) }}</label>
       <input id="playhead" type="range" min="0" :max="selected.duration" step=".01" :value="cursor" @input="$emit('seek', Number(($event.target as HTMLInputElement).value))">
+    </div>
+    <div v-if="selected && gaps?.length" class="gap-strip" aria-hidden="true">
+      <i v-for="(gap, i) in gaps" :key="i" :style="{ left: `${gap.start / selected.duration * 100}%`, width: `${(gap.end - gap.start) / selected.duration * 100}%` }"></i>
     </div>
     <p v-if="notice" class="empty-note">{{ notice }}</p>
     <div v-if="events.length" class="event-list">
